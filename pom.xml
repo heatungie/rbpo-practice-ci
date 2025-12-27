@@ -93,7 +93,26 @@
                         </exclude>
                     </excludes>
                 </configuration>
+	    </plugin>
+	    <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>12.1.6</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <formats>
+                        <format>HTML</format>
+                    </formats>
+                    <failBuildOnCVSS>11</failBuildOnCVSS>
+                </configuration>
             </plugin>
+
         </plugins>
     </build>
 
