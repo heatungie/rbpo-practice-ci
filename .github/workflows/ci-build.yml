@@ -1,10 +1,49 @@
-name: DAST check
+name: CI build and tests
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
+
+permissions:
+  contents: read
+  actions: write
+  security-events: write
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    container:
+      image: maven:3.9.11-eclipse-temurin-21-noble
+
+    steps:
+      - name: Start CI
+        run: echo "Start"
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Make mvnw executable
+        run: chmod +x ./mvnw
+
+      - name: Clean, test and package  with maven
+        run: |-
+          if [ -x "./mvnw" ]; then
+            ./mvnw -B clean test package
+          else
+            mvn -B clean test package
+          fi
+
+      - name: Upload JAR artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-report
+          path: ./target/*.jar
+
+      - name: End CI
+        run: echo "End"
+
   dast-baseline:
     name: dast base scan 
     needs: build
@@ -105,4 +144,5 @@ jobs:
         uses: actions/upload-artifact@v4 
         with:
           name: zap-api-report 
-          path: zap-api-report.html
+          path: zap-api-report.html  
+
