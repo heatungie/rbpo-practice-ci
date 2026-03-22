@@ -1,97 +1,10 @@
-name: CI for ssd
+name: DAST check
 
 on:
   pull_request:
-    branches:
-      - main
-
-permissions:
-  contents: read
-  actions: write
-  security-events: write
+    branches: [ "main" ]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    
-    container:
-      image: maven:3.9.11-eclipse-temurin-21-noble
-
-    steps:
-      - name: Start CI
-        run: echo "Start"
-
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Make mvnw executable
-        run: chmod +x ./mvnw
-
-      - name: Clean, test and package  with maven
-        run: |-
-          if [ -x "./mvnw" ]; then
-            ./mvnw -B clean test package
-          else
-            mvn -B clean test package
-          fi
-
-      - name: Upload JAR artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: code-report
-          path: ./target/*.jar
-
-      - name: End CI
-        run: echo "End"
-  sast:
-    name: Semgrep/ci
-    needs: build
-    runs-on: ubuntu-latest
-
-    container:
-      image: semgrep/semgrep
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: run semgrep and gen sarif
-        run: |-
-          semgrep scan \
-            --config auto \
-            --sarif \
-            --output semgrep-results.sarif .
-
-      - name: upload sarif to github code scanning
-        if: always()
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: semgrep-results.sarif
-  sca:
-    name: OWASP Dependency-Check SCA
-    needs: build 
-    runs-on: ubuntu-latest 
-
-    container:
-      image: maven:3.9.11-eclipse-temurin-21-noble 
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4 
-      
-      - name: make mvnw ex 
-        run: chmod +x ./mvnw 
-      
-      - name: run OWASP Dependency-check
-        run: |-
-          ./mvnw -B dependency-check:check 
-      
-      - name: upload SCA report 
-        if: always()
-        uses: actions/upload-artifact@v4 
-        with:
-          name: check-report 
-          path: target/dependency-check-report.html
   dast-baseline:
     name: dast base scan 
     needs: build
@@ -192,4 +105,4 @@ jobs:
         uses: actions/upload-artifact@v4 
         with:
           name: zap-api-report 
-          path: zap-api-report.html  
+          path: zap-api-report.html
